@@ -147,18 +147,13 @@ defmodule TelemetryMetricsStatsd do
   require Logger
 
   alias Telemetry.Metrics
-  alias TelemetryMetricsStatsd.{EventHandler, UDP}
+  alias TelemetryMetricsStatsd.{EventHandler}
 
   @type option ::
-          {:port, :inet.port_number()}
-          | {:host, String.t()}
+          {:callback, any}
           | {:metrics, [Metrics.t()]}
-          | {:mtu, non_neg_integer()}
           | {:prefix, String.t()}
   @type options :: [option]
-
-  @default_port 8125
-  @default_mtu 512
 
   @doc """
   Reporter's child spec.
@@ -210,58 +205,13 @@ defmodule TelemetryMetricsStatsd do
     GenServer.start_link(__MODULE__, options)
   end
 
-  @doc false
-  @spec get_udp(pid()) :: UDP.t()
-  def get_udp(reporter) do
-    GenServer.call(reporter, :get_udp)
-  end
-
-  @doc false
-  @spec udp_error(pid(), UDP.t(), reason :: term) :: :ok
-  def udp_error(reporter, udp, reason) do
-    GenServer.cast(reporter, {:udp_error, udp, reason})
-  end
-
   @impl true
   def init(options) do
-    metrics = Keyword.fetch!(options, :metrics)
-    port = Keyword.get(options, :port, @default_port)
-    host = Keyword.get(options, :host, "localhost") |> to_charlist()
-    mtu = Keyword.get(options, :mtu, @default_mtu)
-    prefix = Keyword.get(options, :prefix)
-
-    case UDP.open(host, port) do
-      {:ok, udp} ->
-        Process.flag(:trap_exit, true)
-        handler_ids = EventHandler.attach(metrics, self(), mtu, prefix)
-        {:ok, %{udp: udp, handler_ids: handler_ids, host: host, port: port}}
-
-      {:error, reason} ->
-        {:error, {:udp_open_failed, reason}}
-    end
-  end
-
-  @impl true
-  def handle_call(:get_udp, _from, state) do
-    {:reply, state.udp, state}
-  end
-
-  @impl true
-  def handle_cast({:udp_error, udp, reason}, %{udp: udp} = state) do
-    Logger.error("Failed to publish metrics over UDP: #{inspect(reason)}")
-
-    case UDP.open(state.host, state.port) do
-      {:ok, udp} ->
-        {:noreply, %{state | udp: udp}}
-
-      {:error, reason} ->
-        Logger.error("Failed to reopen UDP socket: #{inspect(reason)}")
-        {:stop, {:udp_open_failed, reason}, state}
-    end
-  end
-
-  def handle_cast({:udp_error, _, _}, state) do
-    {:noreply, state}
+    metrics   = Keyword.fetch!(options, :metrics)
+    callback  = Keyword.get(options, :callback)
+    Process.flag(:trap_exit, true)
+    handler_ids = EventHandler.attach(metrics, self(), callback)
+    {:ok, %{handler_ids: handler_ids}}
   end
 
   @impl true
