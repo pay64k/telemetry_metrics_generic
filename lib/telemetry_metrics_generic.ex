@@ -1,4 +1,4 @@
-defmodule TelemetryMetricsStatsd do
+defmodule TelemetryMetricsGeneric do
   @moduledoc """
   `Telemetry.Metrics` reporter for StatsD-compatible metric servers.
 
@@ -7,7 +7,7 @@ defmodule TelemetryMetricsStatsd do
 
       import Telemetry.Metrics
 
-      TelemetryMetricsStatsd.start_link(
+      TelemetryMetricsGeneric.start_link(
         metrics: [
           counter("http.request.count"),
           sum("http.request.payload_size"),
@@ -147,7 +147,7 @@ defmodule TelemetryMetricsStatsd do
   require Logger
 
   alias Telemetry.Metrics
-  alias TelemetryMetricsStatsd.{EventHandler}
+  alias TelemetryMetricsGeneric.{EventHandler}
 
   @type option ::
           {:callback, any}
@@ -161,7 +161,7 @@ defmodule TelemetryMetricsStatsd do
   This function allows you to start the reporter under a supervisor like this:
 
       children = [
-        {TelemetryMetricsStatsd, options}
+        {TelemetryMetricsGeneric, options}
       ]
 
   See `start_link/1` for a list of available options.
@@ -185,13 +185,13 @@ defmodule TelemetryMetricsStatsd do
     bytes. This value should not be greater than the actual MTU since this could lead to the data loss
     when the metrics are published. Defaults to `512`.
 
-  You can read more about all the options in the `TelemetryMetricsStatsd` module documentation.
+  You can read more about all the options in the `TelemetryMetricsGeneric` module documentation.
 
   ## Example
 
       import Telemetry.Metrics
 
-      TelemetryMetricsStatsd.start_link(
+      TelemetryMetricsGeneric.start_link(
         metrics: [
           counter("http.request.count"),
           sum("http.request.payload_size"),

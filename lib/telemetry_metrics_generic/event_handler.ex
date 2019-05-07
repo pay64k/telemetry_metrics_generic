@@ -1,4 +1,4 @@
-defmodule TelemetryMetricsStatsd.EventHandler do
+defmodule TelemetryMetricsGeneric.EventHandler do
   @moduledoc false
 
   alias Telemetry.Metrics
@@ -44,10 +44,6 @@ defmodule TelemetryMetricsStatsd.EventHandler do
       for metric <- metrics do
         case fetch_measurement(metric, measurements) do
           {:ok, value} ->
-            # The order of tags needs to be preserved so that the final metric name is built correctly.
-            # tag_values = metric.tag_values.(metadata)
-            # tags = Enum.map(metric.tags, &{&1, Map.fetch!(tag_values, &1)})
-            # Formatter.format(prefix, metric, value, tags)
             {metric, value}
 
           :error ->
