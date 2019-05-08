@@ -208,7 +208,7 @@ defmodule TelemetryMetricsGeneric do
   @impl true
   def init(options) do
     metrics   = Keyword.fetch!(options, :metrics)
-    callback  = Keyword.get(options, :callback)
+    callback  = Keyword.fetch!(options, :callback)
     Process.flag(:trap_exit, true)
     handler_ids = EventHandler.attach(metrics, self(), callback)
     {:ok, %{handler_ids: handler_ids}}
