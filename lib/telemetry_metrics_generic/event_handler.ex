@@ -99,7 +99,8 @@ defmodule TelemetryMetricsGeneric.EventHandler do
   @spec publish_metrics([any], any) :: :ok
   defp publish_metrics(data, callback) do
     Enum.each(data, fn {metric, value} ->
-      callback.(metric, value)
+      string_name = List.foldl(metric.name, "", fn x, acc -> acc <> Atom.to_string(x) <> "." end)
+      callback.(string_name, value)
     end)
   end
 end
